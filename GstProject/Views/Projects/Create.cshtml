@@ -1,0 +1,148 @@
+﻿@model GstProject.Models.Project
+@{
+    ViewData["Title"] = "Nouvelle Project";
+}
+
+<form method="post">
+    <div class="form-horizontal">
+        <h4>Project</h4>
+        <hr />
+
+        <div class="form-group">
+            <label class="control-label col-md-2" asp-for="Libelle"></label>
+            <div class="col-md-10">
+                <input asp-for="Libelle" class="form-control" />
+                <span asp-validation-for="Libelle" class="text-danger"></span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="control-label col-md-2" asp-for="IdPack"></label>
+            <div class="col-md-10">
+                <select asp-for="IdPack" class="form-control" asp-items="@ViewBag.Packs"></select>
+                <span asp-validation-for="IdPack" class="text-danger"></span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="control-label col-md-2" asp-for="Desc"></label>
+            <div class="col-md-10">
+                <input asp-for="Desc" class="form-control" />
+                <span asp-validation-for="Desc" class="text-danger"></span>
+            </div>
+        </div>
+        <br />
+        <hr />
+        <h5>Taches:</h5>
+        <br />
+        <div class="row">
+            <div class="col-md-4">
+                <div class="form-group row">
+                    <label class="control-label col-md-2">Tache</label>
+                    <div class="col-md-10">
+                        <select class="form-control" id="id_tache" asp-items="@ViewBag.Taches"></select>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group row">
+                    <label class="control-label col-md-2">Duree</label>
+                    <div class="col-md-10">
+                        <input type="number" class="form-control" id="duree" min="1" value="1" />
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <button type="button" onclick="CreateTask();" class="btn btn-primary">
+                    Ajouter Taches
+                </button>
+            </div>
+        </div>
+        <br />
+        <table class="table table-bordered">
+            <tr>
+                <th>Tache</th>
+                <th>Duree</th>
+                <th>Actions</th>
+            </tr>
+            <tbody id="Content">
+            </tbody>
+        </table>
+        <br />
+        <br />
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="submit" value="Ajouter" class="btn btn-primary" />
+                <a asp-controller="Projects" asp-action="Index" class="btn btn-warning">Annuler</a>
+            </div>
+        </div>
+    </div>
+</form>
+
+<script>
+    let tasks = [];
+    /*READ*/
+    function ShowTasks() {
+        var data = '';
+        for (var i = 0; i < tasks.length; i++) {
+            data += '<tr id="row_'+i+'">';
+            data += '<td>' + tasks[i].lib_tache + '<input type="hidden" value="' + tasks[i].id_tache + '" name="id_taches" /></td>';
+            data += '<td>' + tasks[i].duree + '<input type="hidden" id="duree_'+i+'" value="' + tasks[i].duree + '" name="durees" /></td>';
+            data += '<td><button type="button" onclick=EditTask(' + i + ') class="btn btn-success">Edit</button>';
+            data += '<button type="button" onclick=DeleteTask(' + i + ') class="btn btn-danger">Delete</button></td>';
+            data += '</tr>';
+        }
+        document.getElementById("Content").innerHTML = data;
+    }
+    function FindTask(task_id) {
+        for (var i = 0; i < tasks.length; i++) {
+            if (tasks[i].id_tache == task_id){
+                return i;
+            }
+        }
+        return -1;
+    }
+    /*CREATE*/
+    function CreateTask() {
+        var task = document.getElementById("id_tache");
+        var task_id = task.value;
+        var task_lib = task.options[task.selectedIndex].text;
+        var duree = document.getElementById("duree").value;
+
+        var pos = FindTask(task_id);
+        if(pos==-1){
+        // Define an object to add to the array
+        let newTask = {
+            id_tache: task_id,
+            lib_tache: task_lib,
+            duree: duree,
+        };
+
+        tasks.push(newTask);
+        }
+        else{//IF TASK Exist INcreas Duree
+            tasks[pos].duree = parseInt(tasks[pos].duree) + parseInt(duree);
+        }
+        ShowTasks();
+    }
+    /*DELETE*/
+    function DeleteTask(item) {
+        tasks.splice(item, 1);
+        ShowTasks();
+    }
+    /*UPDATE*/
+    function EditTask(item) {
+        //Get Row
+        var tr = document.getElementById("row_" + item);
+        var duree = document.getElementById("duree_" + item);
+        tr.cells[1].innerHTML = '<input type="text" class="form-control" size="2" value="' + duree.value + '" id="nvduree" />';
+        tr.cells[2].innerHTML = '<button type="button" onclick=UpdateTask(' + item + ') class="btn btn-success">Update</button>';
+    }
+    function UpdateTask(item) {
+        //Get Row
+        var nvduree = document.getElementById("nvduree").value;
+        tasks[item].duree = nvduree;
+        
+        ShowTasks();
+    }
+</script>

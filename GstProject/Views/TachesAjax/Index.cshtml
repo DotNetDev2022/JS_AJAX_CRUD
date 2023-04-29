@@ -1,0 +1,248 @@
+﻿@{
+    ViewData["Title"] = "List Taches";
+}
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.6.4/dist/jquery.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
+<script>
+    //Pour Recuperer List Des Taches et l'afficher dans Le Table
+    function gettaches() {
+        //Pre-Loader d'Attent
+        $("#content").html('<tr><td colspan="4">Loading...</td></tr>');
+
+        $.ajax({
+            url: '/TachesAjax/GetTaches', // URL of the controller action that handles the request
+            type: 'GET', // HTTP method (GET or POST)
+            dataType: 'json', // expected data type (JSON, XML, HTML, or text)
+            success: function (data) {
+                // handle the response data if Response is Yes
+                if (data.r == "Y") {
+                    //console.log("data=" + JSON.stringify(data));
+                    console.log("count=" + data.taches.length);
+                    $("#content").html('');
+                    for (let i = 0; i < data.taches.length; i++) {
+                        $("#content").append(
+                            '<tr id="row_' + data.taches[i].id + '"><td>' + (i + 1) + '</td>' +
+                            '<td>' + data.taches[i].libelle + '</td>' +
+                            '<td>' + data.taches[i].desc + '</td>' +
+                            '<td>' +
+                            '<a href="javascript:tacheedit(' + data.taches[i].id + ')" class="btn btn-success">Modifier</a> ' +
+                            '<a href="javascript:tachedelete(' + data.taches[i].id + ')" class="btn btn-danger">Supprimer</a>' +
+                            '</td>' +
+                            '</tr>');
+                    }
+                }
+            },
+            error: function (error) {
+                // handle the error
+                alert("Error::" + error);
+            }
+        });
+    }
+    function tacheedit(id) {
+        console.log("Hi Edit");
+
+        $.ajax({
+            url: '/TachesAjax/GetTache', // URL of the controller action that handles the request
+            type: 'GET', // HTTP method (GET or POST)
+            data: { id: id},
+            success: function (data) {
+                // handle the response data if Response is Yes
+                if (data.r == "Y") {
+                    console.log("data=" + JSON.stringify(data));
+
+                    $("#edit_id").val(data.tache.id);
+                    $("#edit_libelle").val(data.tache.libelle);
+                    $("#edit_description").val(data.tache.desc);
+                 
+                    $("#modifierModal").modal("show");
+                }
+            },
+            error: function (error) {
+                // handle the error
+                alert("Error::" + error);
+            }
+        });
+    }
+    function tachedelete(id) {
+        if (confirm("Voulez-Vous Supprimer?")) {
+            $.ajax({
+                url: '/TachesAjax/Delete', // URL of the controller action that handles the request
+                type: 'GET', // HTTP method (GET or POST)
+                data: { id: id },
+                success: function (data) {
+                    // handle the response data
+                    if (data.r == "Y") {
+                        //console.log("data=" + JSON.stringify(data));
+                        $("#row_" + id).remove();
+                    }
+                },
+                error: function (error) {
+                    // handle the error
+                    alert("Error::" + error);
+                }
+            });
+        }
+    }
+
+    $(document).ready(function () {
+        console.log("ready!");
+        gettaches();
+
+        $("#btnAjouter").click(function () {
+            var libelle = $("#nv_libelle").val();
+            var desc = $("#nv_description").val();
+
+            $.ajax({
+                url: '/TachesAjax/Create', // URL of the controller action that handles the request
+                type: 'Post', // HTTP method (GET or POST)
+                data: { Libelle: libelle, Desc: desc },
+                success: function (data) {
+                    // handle the response data
+                    if (data.r == "Y") {
+                        console.log("data=" + JSON.stringify(data));
+                        gettaches();
+                        $("#nv_libelle").val('');
+                        $("#nv_description").val('');
+                        $("#ajouterModal").modal("hide");
+                    }
+                },
+                error: function (error) {
+                    // handle the error
+                    alert("Error::" + error);
+                }
+            });
+        });
+        $("#btnModifier").click(function () {
+            var id = $("#edit_id").val();
+            var libelle = $("#edit_libelle").val();
+            var desc = $("#edit_description").val();
+
+            $.ajax({
+                url: '/TachesAjax/Edit', // URL of the controller action that handles the request
+                type: 'Post', // HTTP method (GET or POST)
+                data: { Id: id, Libelle: libelle, Desc: desc },
+                success: function (data) {
+                    // handle the response data
+                    if (data.r == "Y") {
+                        console.log("data=" + JSON.stringify(data));
+                        gettaches();
+                        $("#edit_id").val('');
+                        $("#edit_title").val('');
+                        $("#edit_content").val('');
+                        $("#modifierModal").modal("hide");
+                    }
+                },
+                error: function (error) {
+                    // handle the error
+                    alert("Error::" + error);
+                }
+            });
+        });
+    });
+</script>
+
+<!-- basic table  Start -->
+<div class="pd-20 card-box mb-30">
+    <div class="clearfix mb-20">
+        <div class="pull-left">
+            <h4 class="text-blue h4">List Taches</h4>
+        </div>
+    </div>
+    <p>
+        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#ajouterModal">Ajouter</button>
+        <button type="button" onclick="gettaches();" class="btn btn-success">Actualiser</button>
+    </p>
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Libelle</th>
+                    <th>Description</th>
+                    <th width="250px">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="content">
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="ajouterModal" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <!-- Modal Header -->
+            <div class="modal-header">
+                <h4 class="modal-title">Nouvelle Tache</h4>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+
+            <!-- Modal body -->
+            <div class="modal-body">
+                <div class="form-group row">
+                    <label class="col-sm-12 col-md-3 col-form-label">Libelle : </label>
+                    <div class="col-sm-12 col-md-9">
+                        <input type="text" class="form-control form-control-lg" id="nv_libelle" placeholder="Libelle" />
+                    </div>
+                </div>
+
+                <div class="form-group row">
+                    <label class="col-sm-12 col-md-3 col-form-label">Description : </label>
+                    <div class="col-sm-12 col-md-9">
+                        <textarea class="form-control form-control-lg" rows="5" id="nv_description" placeholder="Description"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal footer -->
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success" id="btnAjouter">Ajouter</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Modal -->
+<div class="modal fade" id="modifierModal" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <!-- Modal Header -->
+            <div class="modal-header">
+                <h4 class="modal-title">Modifier Tache</h4>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+
+            <!-- Modal body -->
+            <div class="modal-body">
+                <input type="hidden" id="edit_id" />
+
+                <div class="form-group row">
+                    <label class="col-sm-12 col-md-3 col-form-label">Libelle : </label>
+                    <div class="col-sm-12 col-md-9">
+                        <input type="text" class="form-control form-control-lg" id="edit_libelle" placeholder="Libelle" />
+                    </div>
+                </div>
+
+                <div class="form-group row">
+                    <label class="col-sm-12 col-md-3 col-form-label">Description : </label>
+                    <div class="col-sm-12 col-md-9">
+                        <textarea class="form-control form-control-lg" rows="5" id="edit_description" placeholder="Description"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal footer -->
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success" id="btnModifier">Modifier</button>
+            </div>
+        </div>
+    </div>
+</div>
+

@@ -1,0 +1,29 @@
+﻿@model List<GstProject.Models.Tache>
+
+@{
+    ViewData["Title"] = "List Taches";
+}
+
+<p>
+    <a asp-action="Create" asp-controller="Taches" class="btn btn-primary">Ajouter</a>
+</p>
+<table class="table">
+    <tr>
+        <th>ID</th>
+        <th>Libelle</th>
+        <th>Description</th>
+        <th>Actions</th>
+    </tr>
+    @foreach(var item  in Model)
+    {
+        <tr>
+            <td>@item.Id</td>
+            <td>@item.Libelle</td>
+            <td>@item.Desc</td>
+            <td>
+                <a asp-action="Edit" asp-controller="Taches" asp-route-id="@item.Id" class="btn btn-success">Modifier</a>
+                <a asp-action="Delete" asp-controller="Taches" asp-route-id="@item.Id" class="btn btn-danger" onclick="return confirm('Voullez-Vous Supprimer?')">Supprimer</a>
+            </td>
+        </tr>
+    }
+</table>
